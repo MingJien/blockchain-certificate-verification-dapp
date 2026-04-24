@@ -1,25 +1,67 @@
-# HOW TO DEMO SYSTEM
+Blockchain Certificate Verification DApp
+Overview
 
-1. Cấp chứng chỉ từ màn Issuer/Admin.
-2. Sao chép `txHash` sau khi cấp thành công.
-3. Xác minh chứng chỉ bằng ID hoặc hash.
-4. Thu hồi chứng chỉ.
-5. Xác minh lại, kết quả phải chuyển sang không hợp lệ.
+Hệ thống xác minh chứng chỉ sử dụng blockchain:
 
----
+Lưu certificate hash on-chain
+Đảm bảo không thể sửa đổi
+Hỗ trợ:
+Issue
+Verify
+Revoke
+Architecture
+Frontend (React)
+      ↓
+Backend (Node.js)
+      ↓
+Database (MySQL)
 
-Tài liệu chi tiết kiến trúc và luồng hệ thống nằm trong thư mục `docs/`.
+      ↘
+   Smart Contract (Ethereum)
+Core Flow
 
-## Authorization Mode (Issue/Revoke)
+Issue
 
-Backend hỗ trợ 2 chế độ kiểm soát quyền khi cấp/thu hồi chứng chỉ:
+Tạo certificate → hash → ghi on-chain → lưu DB + txHash
 
-- Strict (khuyến nghị): `STRICT_ONCHAIN_REQUESTER_CHECK=true`
-	- Requester phải đăng nhập role `ADMIN` hoặc `ISSUER` trong DB.
-	- Ví requester phải có quyền issuer/admin trên smart contract.
-	- Nếu role là `ISSUER`, ví requester còn phải khớp ví của `issuerId` đang thao tác.
+Verify
 
-- Relaxed (chỉ dùng fallback demo): `STRICT_ONCHAIN_REQUESTER_CHECK=false`
-	- Dựa vào role DB + mapping ví issuer trong DB, không bắt buộc requester đang là issuer on-chain.
+Nhập ID/hash → so sánh DB + blockchain
 
-Lưu ý: Khi bật Strict mode, cần đảm bảo tài khoản issuer đã được thêm quyền on-chain (qua trang quản trị issuer bằng admin on-chain), nếu không sẽ bị từ chối cấp/thu hồi.
+Revoke
+
+Gọi contract → update DB → verify lại = INVALID
+HOW TO DEMO
+Issue certificate → copy txHash
+Verify → kết quả VALID
+Revoke certificate
+Verify lại → INVALID
+Authorization Mode
+Strict (khuyến nghị)
+STRICT_ONCHAIN_REQUESTER_CHECK=true
+Check role DB + quyền on-chain
+Issuer phải đúng ví
+Relaxed (demo fallback)
+STRICT_ONCHAIN_REQUESTER_CHECK=false
+Chỉ check DB
+Không bắt buộc quyền on-chain
+Setup
+# Backend
+cd backend && npm install && npm run dev
+
+# Frontend
+cd frontend && npm install && npm start
+
+Import DB:
+
+Certificate.sql
+Project Structure
+backend/
+frontend/
+smart-contract/
+postman/
+Certificate.sql
+Notes
+On-chain: chỉ lưu hash
+Off-chain: metadata
+Backend: bridge Web2 ↔ Web3
